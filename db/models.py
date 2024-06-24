@@ -1,14 +1,26 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.sql import func
+# models.py
 
-Base = declarative_base()
+from sqlalchemy import Column, Integer, String, Text, ForeignKey
+from sqlalchemy.orm import relationship
+from .database import Base
 
 
 class Post(Base):
-    __tablename__ = "posts"
+    __tablename__ = "posts_post"
+
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
     content = Column(Text)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    owner_id = Column(Integer, ForeignKey("accounts_user.id"))
+
+    owner = relationship("User", back_populates="posts")
+
+
+class User(Base):
+    __tablename__ = "accounts_user"
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True)
+    nickname = Column(String, unique=True, index=True)
+    avatar = Column(String, nullable=True)
+
+    posts = relationship("Post", back_populates="owner")
