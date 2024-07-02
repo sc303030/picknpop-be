@@ -1,3 +1,4 @@
+from sqlalchemy import desc
 from sqlalchemy.orm import Session
 from app.db.models import Post
 from app.schemas import post as post_schema
@@ -12,7 +13,7 @@ def create_post(db: Session, post: post_schema.PostCreate, user_id: int):
 
 
 def get_posts(db: Session, skip: int = 0, limit: int = 10):
-    return db.query(Post).offset(skip).limit(limit).all()
+    return db.query(Post).order_by(desc(Post.id)).offset(skip).limit(limit).all()
 
 
 def get_post(db: Session, post_id: int):
