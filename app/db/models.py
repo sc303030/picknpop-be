@@ -1,6 +1,6 @@
 # models.py
 
-from sqlalchemy import Column, Integer, String, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, func
 from sqlalchemy.orm import relationship
 from .database import Base
 
@@ -14,6 +14,7 @@ class Post(Base):
     owner_id = Column(Integer, ForeignKey("accounts_user.id"))
 
     owner = relationship("User", back_populates="posts")
+    comments = relationship("Comment", back_populates="post")
 
 
 class User(Base):
@@ -24,3 +25,18 @@ class User(Base):
     avatar = Column(String, nullable=True)
 
     posts = relationship("Post", back_populates="owner")
+
+
+class Comment(Base):
+    __tablename__ = "posts_comment"
+
+    id = Column(Integer, primary_key=True, index=True)
+    author_id = Column(Integer, ForeignKey("accounts_user.id"))
+    post_id = Column(Integer, ForeignKey("posts.id"))
+    message = Column(Text)
+
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+
+    author = relationship("User")
+    post = relationship("Post", back_populates="comments")
