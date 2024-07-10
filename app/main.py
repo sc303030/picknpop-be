@@ -19,7 +19,7 @@ apps.add_middleware(
 apps.include_router(posts.router, prefix="/posts", tags=["posts"])
 apps.include_router(comments.router, prefix="/comments", tags=["comments"])
 
-if __name__ == "__main__":
-    import uvicorn
-
-    uvicorn.run(apps, host="0.0.0.0", port=18000)
+# if __name__ == "__main__":
+#     import uvicorn
+#
+#     uvicorn.run(apps, host="0.0.0.0", port=18000)
