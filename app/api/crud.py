@@ -6,7 +6,7 @@ from app.schemas import comment as comment_schema
 
 
 def create_post(db: Session, post: post_schema.PostCreate, user_id: int):
-    db_post = Post(title=post.title, content=post.content, owner_id=user_id)
+    db_post = Post(title=post.title, content=post.content, author_id=user_id)
     db.add(db_post)
     db.commit()
     db.refresh(db_post)

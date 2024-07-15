@@ -18,7 +18,7 @@ class PostUpdate(PostBase):
 
 class Post(PostBase):
     id: int
-    owner_id: int
+    author_id: int
     created_at: datetime
     updated_at: datetime
 
