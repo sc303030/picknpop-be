@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -19,6 +20,7 @@ class PostUpdate(PostBase):
 class Post(PostBase):
     id: int
     author_id: int
+    team_id: Optional[int] = None
     created_at: datetime
     updated_at: datetime
 

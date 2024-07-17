@@ -1,6 +1,6 @@
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
-from app.db.models import Post, Comment
+from app.db.models import Post, Comment, Team
 from app.schemas import post as post_schema
 from app.schemas import comment as comment_schema
 
@@ -51,3 +51,7 @@ def get_comments(db: Session, post_id: int, skip: int = 0, limit: int = 10):
         .limit(limit)
         .all()
     )
+
+
+def get_teams(db: Session, skip: int = 0, limit: int = 20):
+    return db.query(Team).offset(skip).limit(limit).all()
