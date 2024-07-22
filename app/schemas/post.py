@@ -10,7 +10,7 @@ class PostBase(BaseModel):
 
 
 class PostCreate(PostBase):
-    pass
+    team_id: Optional[int] = None
 
 
 class PostUpdate(PostBase):
