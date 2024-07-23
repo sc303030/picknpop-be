@@ -57,3 +57,7 @@ def get_comments(db: Session, post_id: int, skip: int = 0, limit: int = 10):
 
 def get_teams(db: Session, skip: int = 0, limit: int = 20):
     return db.query(Team).offset(skip).limit(limit).all()
+
+
+def get_posts_by_team(db: Session, team_id: int):
+    return db.query(Post).filter(Post.team_id == team_id).all()
