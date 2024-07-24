@@ -1,5 +1,5 @@
 from sqlalchemy import desc
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from app.db.models import Post, Comment, Team
 from app.schemas import post as post_schema
 from app.schemas import comment as comment_schema
@@ -16,7 +16,14 @@ def create_post(db: Session, post: post_schema.PostCreate, user_id: int):
 
 
 def get_posts(db: Session, skip: int = 0, limit: int = 10):
-    return db.query(Post).order_by(desc(Post.id)).offset(skip).limit(limit).all()
+    return (
+        db.query(Post)
+        .options(joinedload(Post.author))
+        .order_by(Post.id.desc())
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
 
 
 def get_post(db: Session, post_id: int):

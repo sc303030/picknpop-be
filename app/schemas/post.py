@@ -3,6 +3,8 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+from app.schemas.user import User
+
 
 class PostBase(BaseModel):
     title: str
@@ -19,7 +21,7 @@ class PostUpdate(PostBase):
 
 class Post(PostBase):
     id: int
-    author_id: int
+    author: User
     team_id: Optional[int] = None
     created_at: datetime
     updated_at: datetime
