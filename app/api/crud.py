@@ -67,4 +67,10 @@ def get_teams(db: Session, skip: int = 0, limit: int = 20):
 
 
 def get_posts_by_team(db: Session, team_id: int):
-    return db.query(Post).filter(Post.team_id == team_id).all()
+    return (
+        db.query(Post)
+        .options(joinedload(Post.author))
+        .order_by(Post.id.desc())
+        .filter(Post.team_id == team_id)
+        .all()
+    )

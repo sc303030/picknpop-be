@@ -8,21 +8,18 @@ from typing import List
 from app.schemas import team as team_schema
 from app.db.database import get_db
 from app.api import crud
+from app.schemas import post as post_schema
 
 router = APIRouter()
-
-DJANGO_MEDIA_URL = os.getenv("DJANGO_MEDIA_URL")
 
 
 @router.get("/", response_model=List[team_schema.Team])
 def read_teams(skip: int = 0, limit: int = 20, db: Session = Depends(get_db)):
     teams = crud.get_teams(db, skip=skip, limit=limit)
-    for team in teams:
-        team.emblem = f"{DJANGO_MEDIA_URL}/{team.emblem}"
     return teams
 
 
-@router.get("/{team_id}/posts")
+@router.get("/{team_id}/posts", response_model=List[post_schema.Post])
 def read_posts_by_team(team_id: int, db: Session = Depends(get_db)):
     posts = crud.get_posts_by_team(db, team_id=team_id)
     if posts is None:

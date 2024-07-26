@@ -12,7 +12,7 @@ class PostBase(BaseModel):
 
 
 class PostCreate(PostBase):
-    team_id: Optional[int] = None
+    team_id: int
 
 
 class PostUpdate(PostBase):
@@ -22,7 +22,7 @@ class PostUpdate(PostBase):
 class Post(PostBase):
     id: int
     author: User
-    team_id: Optional[int] = None
+    team_id: int
     created_at: datetime
     updated_at: datetime
 
