@@ -1,3 +1,5 @@
+import os
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
@@ -7,6 +9,7 @@ from app.schemas import post as post_schema
 from app.api import crud
 
 router = APIRouter()
+DJANGO_MEDIA_URL = os.getenv("DJANGO_MEDIA_URL")
 
 
 @router.post("/", response_model=post_schema.Post)
@@ -21,6 +24,12 @@ def create_post(
 @router.get("/", response_model=List[post_schema.Post])
 def read_posts(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     posts = crud.get_posts(db, skip=skip, limit=limit)
+    for post in posts:
+        author_info = post.author
+        if not author_info.avatar:
+            author_info.avatar = (
+                f"{DJANGO_MEDIA_URL}/identicon/image/{author_info.nickname}.png"
+            )
     return posts
 
 
@@ -29,6 +38,11 @@ def read_post(post_id: int, db: Session = Depends(get_db)):
     db_post = crud.get_post(db=db, post_id=post_id)
     if not db_post:
         raise HTTPException(status_code=404, detail="Post not found")
+    author_info = db_post.author
+    if not author_info.avatar:
+        author_info.avatar = (
+            f"{DJANGO_MEDIA_URL}/identicon/image/{author_info.nickname}.png"
+        )
     return db_post
 
 
