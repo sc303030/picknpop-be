@@ -55,6 +55,7 @@ def get_comments(db: Session, post_id: int, skip: int = 0, limit: int = 10):
     return (
         db.query(Comment)
         .filter(Comment.post_id == post_id)
+        .options(joinedload(Comment.author))
         .order_by(desc(Comment.id))
         .offset(skip)
         .limit(limit)
