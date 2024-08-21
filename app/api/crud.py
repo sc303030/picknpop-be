@@ -1,8 +1,11 @@
-from sqlalchemy import desc
+from typing import Optional
+
+from sqlalchemy import desc, func
 from sqlalchemy.orm import Session, joinedload
-from app.db.models import Post, Comment, Team
+from app.db.models import Post, Comment, Team, Emotion, EmotionType
 from app.schemas import post as post_schema
 from app.schemas import comment as comment_schema
+from app.schemas import emotion as emotion_schema
 
 
 def create_post(db: Session, post: post_schema.PostCreate, user_id: int):
@@ -75,3 +78,65 @@ def get_posts_by_team(db: Session, team_id: int):
         .filter(Post.team_id == team_id)
         .all()
     )
+
+
+def get_emotion_types(db: Session, skip: int = 0):
+    return db.query(EmotionType).offset(skip).all()
+
+
+def get_emotion_counts_by_post(db: Session, post_id: int):
+    counts = (
+        db.query(Emotion.emotion_type_id, func.count(Emotion.id).label("count"))
+        .filter(Emotion.post_id == post_id)
+        .group_by(Emotion.emotion_type_id)
+        .all()
+    )
+    return [
+        emotion_schema.EmotionResponse(
+            emotion_type_id=count.emotion_type_id, count=count.count
+        )
+        for count in counts
+    ]
+
+
+def get_user_emotion_status(db: Session, user_id: Optional[int], post_id: int):
+    if user_id is None:
+        return []
+    emotions = (
+        db.query(Emotion)
+        .filter(Emotion.user_id == user_id, Emotion.post_id == post_id)
+        .all()
+    )
+    if not emotions:
+        return []
+    return [
+        emotion_schema.UserEmotionStatus(
+            emotion_type_id=emotion.emotion_type_id, voted=True
+        )
+        for emotion in emotions
+    ]
+
+
+def toggle_emotion(db: Session, user_id: int, post_id: int, emotion_type_id: int):
+    emotion = (
+        db.query(Emotion)
+        .filter(
+            Emotion.user_id == user_id,
+            Emotion.post_id == post_id,
+            Emotion.emotion_type_id == emotion_type_id,
+        )
+        .first()
+    )
+
+    if emotion:
+        db.delete(emotion)
+        db.commit()
+        return {"action": "deleted"}
+    else:
+        new_emotion = Emotion(
+            user_id=user_id, post_id=post_id, emotion_type_id=emotion_type_id
+        )
+        db.add(new_emotion)
+        db.commit()
+        db.refresh(new_emotion)
+        return {"action": "added"}

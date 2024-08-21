@@ -1,6 +1,15 @@
 # models.py
 
-from sqlalchemy import Column, Integer, String, Text, ForeignKey, DateTime, func
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    Text,
+    ForeignKey,
+    DateTime,
+    func,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import relationship
 from .database import Base
 
@@ -8,6 +17,17 @@ from .database import Base
 class TimestampMixin:
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
+
+
+class EmotionType(Base, TimestampMixin):
+    __tablename__ = "posts_emotiontype"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(50), unique=True, index=True)
+    description = Column(Text, nullable=True)
+
+    def __str__(self):
+        return self.name
 
 
 class User(Base):
@@ -19,6 +39,25 @@ class User(Base):
 
     posts = relationship("Post", back_populates="author")
     comments = relationship("Comment", back_populates="author")
+    emotions = relationship("Emotion", back_populates="user")
+
+
+class Emotion(Base, TimestampMixin):
+    __tablename__ = "posts_emotion"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("accounts_user.id"))
+    post_id = Column(Integer, ForeignKey("posts_post.id"))
+    emotion_type_id = Column(Integer, ForeignKey("posts_emotiontype.id"))
+
+    user = relationship("User", back_populates="emotions")
+    post = relationship("Post", back_populates="emotions")
+    emotion_type = relationship("EmotionType")
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id", "post_id", "emotion_type_id", name="unique_user_post_emotion"
+        ),
+    )
 
 
 class Team(Base, TimestampMixin):
@@ -43,6 +82,7 @@ class Post(Base, TimestampMixin):
     author = relationship("User", back_populates="posts")
     comments = relationship("Comment", back_populates="post")
     teams = relationship("Team", back_populates="posts")
+    emotions = relationship("Emotion", back_populates="post")
 
 
 class Comment(Base, TimestampMixin):
