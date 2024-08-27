@@ -6,7 +6,6 @@ from app.schemas.user import User
 
 
 class PostBase(BaseModel):
-    id: int
     title: str
     content: str
 
@@ -20,6 +19,7 @@ class PostUpdate(PostBase):
 
 
 class Post(PostBase):
+    id: int
     author: User
     team_id: int
     created_at: datetime
@@ -30,7 +30,8 @@ class Post(PostBase):
         from_attributes = True
 
 
-class PostViewLogBase(PostBase):
+class PostViewLog(PostBase):
+    post_id: int
     recent_views: int
 
     class Config:

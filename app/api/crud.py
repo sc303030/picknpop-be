@@ -54,8 +54,8 @@ def get_popular_posts(db: Session):
         .all()
     )
     return [
-        post_schema.PostViewLogBase(
-            id=post.id,
+        post_schema.PostViewLog(
+            post_id=post.id,
             title=post.title,
             content=post.content,
             recent_views=recent_views,

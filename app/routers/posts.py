@@ -26,7 +26,7 @@ def read_posts(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     return posts
 
 
-@router.get("/popular", response_model=List[post_schema.PostViewLogBase])
+@router.get("/popular", response_model=List[post_schema.PostViewLog])
 def get_popular_posts(db: Session = Depends(get_db)):
     return crud.get_popular_posts(db)
 
