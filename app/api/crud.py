@@ -1,8 +1,9 @@
+from datetime import datetime, timedelta
 from typing import Optional
 
 from sqlalchemy import desc, func
 from sqlalchemy.orm import Session, joinedload
-from app.db.models import Post, Comment, Team, Emotion, EmotionType
+from app.db.models import Post, Comment, Team, Emotion, EmotionType, PostViewLog
 from app.schemas import post as post_schema
 from app.schemas import comment as comment_schema
 from app.schemas import emotion as emotion_schema
@@ -31,6 +32,36 @@ def get_posts(db: Session, skip: int = 0, limit: int = 10):
 
 def get_post(db: Session, post_id: int):
     return db.query(Post).filter(Post.id == post_id).first()
+
+
+def increment_post_views(db: Session, post: Post):
+    post.views += 1
+    db.add(PostViewLog(post_id=post.id))
+    db.commit()
+    db.refresh(post)
+    return post
+
+
+def get_popular_posts(db: Session):
+    one_minute_ago = datetime.utcnow() - timedelta(minutes=60)
+    popular_posts = (
+        db.query(Post, func.count(PostViewLog.id).label("recent_views"))
+        .join(PostViewLog)
+        .filter(PostViewLog.viewed_at >= one_minute_ago)
+        .group_by(Post.id)
+        .order_by(func.count(PostViewLog.id).desc())
+        .limit(5)
+        .all()
+    )
+    return [
+        post_schema.PostViewLogBase(
+            id=post.id,
+            title=post.title,
+            content=post.content,
+            recent_views=recent_views,
+        )
+        for post, recent_views in popular_posts
+    ]
 
 
 def update_post(db: Session, post_id: int, post: post_schema.PostUpdate):

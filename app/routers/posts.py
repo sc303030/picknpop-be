@@ -26,11 +26,17 @@ def read_posts(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
     return posts
 
 
+@router.get("/popular", response_model=List[post_schema.PostViewLogBase])
+def get_popular_posts(db: Session = Depends(get_db)):
+    return crud.get_popular_posts(db)
+
+
 @router.get("/{post_id}", response_model=post_schema.Post)
 def read_post(post_id: int, db: Session = Depends(get_db)):
     db_post = crud.get_post(db=db, post_id=post_id)
     if not db_post:
         raise HTTPException(status_code=404, detail="Post not found")
+    crud.increment_post_views(db, db_post)
     return db_post
 
 

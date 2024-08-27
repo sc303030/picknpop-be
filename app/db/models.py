@@ -12,6 +12,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from .database import Base
+from datetime import datetime
 
 
 class TimestampMixin:
@@ -76,6 +77,7 @@ class Post(Base, TimestampMixin):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
     content = Column(Text)
+    views = Column(Integer, default=0)
     author_id = Column(Integer, ForeignKey("accounts_user.id"))
     team_id = Column(Integer, ForeignKey("posts_team.id"))
 
@@ -83,6 +85,15 @@ class Post(Base, TimestampMixin):
     comments = relationship("Comment", back_populates="post")
     teams = relationship("Team", back_populates="posts")
     emotions = relationship("Emotion", back_populates="post")
+    view_logs = relationship("PostViewLog", back_populates="post")
+
+
+class PostViewLog(Base):
+    __tablename__ = "posts_postviewlog"
+    id = Column(Integer, primary_key=True, index=True)
+    post_id = Column(Integer, ForeignKey("posts_post.id"))
+    viewed_at = Column(DateTime, default=datetime.utcnow)
+    post = relationship("Post", back_populates="view_logs")
 
 
 class Comment(Base, TimestampMixin):
