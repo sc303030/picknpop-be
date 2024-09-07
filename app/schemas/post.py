@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List
 
 from pydantic import BaseModel
 
@@ -11,7 +12,7 @@ class PostBase(BaseModel):
 
 
 class PostCreate(PostBase):
-    team_id: int
+    team_ids: List[int]
 
 
 class PostUpdate(PostBase):
@@ -21,7 +22,6 @@ class PostUpdate(PostBase):
 class Post(PostBase):
     id: int
     author: User
-    team_id: int
     created_at: datetime
     updated_at: datetime
     views: int

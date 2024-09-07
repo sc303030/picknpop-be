@@ -10,9 +10,14 @@ from app.schemas import emotion as emotion_schema
 
 
 def create_post(db: Session, post: post_schema.PostCreate, user_id: int):
-    db_post = Post(
-        title=post.title, content=post.content, team_id=post.team_id, author_id=user_id
-    )
+    db_post = Post(title=post.title, content=post.content, author_id=user_id)
+
+    if post.team_ids:
+        for team_id in post.team_ids:
+            team = db.query(Team).filter(Team.id == team_id).first()
+            if team:
+                db_post.teams.append(team)
+
     db.add(db_post)
     db.commit()
     db.refresh(db_post)

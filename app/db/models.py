@@ -9,6 +9,7 @@ from sqlalchemy import (
     DateTime,
     func,
     UniqueConstraint,
+    Table,
 )
 from sqlalchemy.orm import relationship
 from .database import Base
@@ -61,6 +62,14 @@ class Emotion(Base, TimestampMixin):
     )
 
 
+post_team_association = Table(
+    "posts_post_team",
+    Base.metadata,
+    Column("post_id", ForeignKey("posts_post.id"), primary_key=True),
+    Column("team_id", ForeignKey("posts_team.id"), primary_key=True),
+)
+
+
 class Team(Base, TimestampMixin):
     __tablename__ = "posts_team"
 
@@ -68,7 +77,9 @@ class Team(Base, TimestampMixin):
     name = Column(String, unique=True, index=True)
     league = Column(String, index=True)
     emblem = Column(String, nullable=True)
-    posts = relationship("Post", back_populates="teams")
+    posts = relationship(
+        "Post", secondary=post_team_association, back_populates="teams"
+    )
 
 
 class Post(Base, TimestampMixin):
@@ -79,11 +90,12 @@ class Post(Base, TimestampMixin):
     content = Column(Text)
     views = Column(Integer, default=0)
     author_id = Column(Integer, ForeignKey("accounts_user.id"))
-    team_id = Column(Integer, ForeignKey("posts_team.id"))
 
     author = relationship("User", back_populates="posts")
     comments = relationship("Comment", back_populates="post")
-    teams = relationship("Team", back_populates="posts")
+    teams = relationship(
+        "Team", secondary=post_team_association, back_populates="posts"
+    )
     emotions = relationship("Emotion", back_populates="post")
     view_logs = relationship("PostViewLog", back_populates="post")
 
