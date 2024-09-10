@@ -1,9 +1,10 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel
 
 from app.schemas.user import User
+from app.schemas.team import TeamResponse
 
 
 class PostBase(BaseModel):
@@ -15,8 +16,13 @@ class PostCreate(PostBase):
     team_ids: List[int]
 
 
-class PostUpdate(PostBase):
-    pass
+class PostUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    team_ids: Optional[List[int]] = None
+
+    class Config:
+        from_attributes = True
 
 
 class Post(PostBase):
@@ -25,6 +31,13 @@ class Post(PostBase):
     created_at: datetime
     updated_at: datetime
     views: int
+
+    class Config:
+        from_attributes = True
+
+
+class PostResponse(Post):
+    teams: List[TeamResponse]
 
     class Config:
         from_attributes = True

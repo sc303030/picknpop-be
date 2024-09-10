@@ -21,3 +21,10 @@ class Team(TeamBase):
 
     class Config:
         from_attributes = True
+
+
+class TeamResponse(BaseModel):
+    id: int
+
+    class Config:
+        from_attributes = True

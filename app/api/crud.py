@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Optional
 
+from fastapi import HTTPException
 from sqlalchemy import desc, func
 from sqlalchemy.orm import Session, joinedload
 from app.db.models import Post, Comment, Team, Emotion, EmotionType, PostViewLog
@@ -36,7 +37,16 @@ def get_posts(db: Session, skip: int = 0, limit: int = 10):
 
 
 def get_post(db: Session, post_id: int):
-    return db.query(Post).filter(Post.id == post_id).first()
+    post = (
+        db.query(Post)
+        .options(joinedload(Post.teams))
+        .filter(Post.id == post_id)
+        .first()
+    )
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+
+    return post
 
 
 def increment_post_views(db: Session, post: Post):
@@ -69,15 +79,37 @@ def get_popular_posts(db: Session):
     ]
 
 
-def update_post(db: Session, post_id: int, post: post_schema.PostUpdate):
-    db_post = db.query(Post).filter(Post.id == post_id).first()
-    if db_post:
-        db_post.title = post.title
-        db_post.content = post.content
-        db.commit()
-        db.refresh(db_post)
-        return db_post
-    return None
+# 게시글 수정
+def update_post(db: Session, post_id: int, post_update: post_schema.PostUpdate):
+    post = db.query(Post).filter(Post.id == post_id).first()
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+
+    for key, value in post_update.dict(exclude_unset=True).items():
+        setattr(post, key, value)
+
+    if post_update.team_ids is not None:
+        post.teams.clear()
+
+        for team_id in post_update.team_ids:
+            team = db.query(Team).filter(Team.id == team_id).first()
+            if team:
+                post.teams.append(team)
+
+    db.commit()
+    db.refresh(post)
+    return post
+
+
+# 게시글 삭제
+def delete_post(db: Session, post_id: int):
+    post = db.query(Post).filter(Post.id == post_id).first()
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+
+    db.delete(post)
+    db.commit()
+    return {"message": "Post deleted successfully"}
 
 
 def create_comment(
@@ -109,9 +141,10 @@ def get_teams(db: Session, skip: int = 0, limit: int = 20):
 def get_posts_by_team(db: Session, team_id: int):
     return (
         db.query(Post)
-        .options(joinedload(Post.author))
+        .options(joinedload(Post.author), joinedload(Post.teams))
+        .join(Post.teams)
+        .filter(Team.id == team_id)
         .order_by(Post.id.desc())
-        .filter(Post.team_id == team_id)
         .all()
     )
 

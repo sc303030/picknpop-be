@@ -3,6 +3,8 @@ import os
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
+
+from app.api.crud import update_post, delete_post
 from app.db.database import get_db
 from app.dependencies import get_current_user
 from app.schemas import post as post_schema
@@ -31,20 +33,20 @@ def get_popular_posts(db: Session = Depends(get_db)):
     return crud.get_popular_posts(db)
 
 
-@router.get("/{post_id}", response_model=post_schema.Post)
+@router.get("/{post_id}", response_model=post_schema.PostResponse)
 def read_post(post_id: int, db: Session = Depends(get_db)):
     db_post = crud.get_post(db=db, post_id=post_id)
-    if not db_post:
-        raise HTTPException(status_code=404, detail="Post not found")
     crud.increment_post_views(db, db_post)
     return db_post
 
 
-@router.put("/{post_id}", response_model=post_schema.Post)
-def update_post(
-    post_id: int, post: post_schema.PostUpdate, db: Session = Depends(get_db)
+@router.put("/{post_id}")
+def update_post_route(
+    post_id: int, post_update: post_schema.PostUpdate, db: Session = Depends(get_db)
 ):
-    db_post = crud.update_post(db=db, post_id=post_id, post=post)
-    if not db_post:
-        raise HTTPException(status_code=404, detail="Post not found")
-    return db_post
+    return update_post(db=db, post_id=post_id, post_update=post_update)
+
+
+@router.delete("/{post_id}")
+def delete_post_route(post_id: int, db: Session = Depends(get_db)):
+    return delete_post(db=db, post_id=post_id)
