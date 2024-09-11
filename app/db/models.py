@@ -97,13 +97,15 @@ class Post(Base, TimestampMixin):
         "Team", secondary=post_team_association, back_populates="posts"
     )
     emotions = relationship("Emotion", back_populates="post")
-    view_logs = relationship("PostViewLog", back_populates="post")
+    view_logs = relationship(
+        "PostViewLog", cascade="all, delete-orphan", back_populates="post"
+    )
 
 
 class PostViewLog(Base):
     __tablename__ = "posts_postviewlog"
     id = Column(Integer, primary_key=True, index=True)
-    post_id = Column(Integer, ForeignKey("posts_post.id"))
+    post_id = Column(Integer, ForeignKey("posts_post.id", ondelete="CASCADE"))
     viewed_at = Column(DateTime, default=datetime.utcnow)
     post = relationship("Post", back_populates="view_logs")
 
