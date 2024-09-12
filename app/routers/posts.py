@@ -47,6 +47,6 @@ def update_post_route(
     return update_post(db=db, post_id=post_id, post_update=post_update)
 
 
-@router.delete("/{post_id}")
+@router.patch("/{post_id}")
 def delete_post_route(post_id: int, db: Session = Depends(get_db)):
     return delete_post(db=db, post_id=post_id)

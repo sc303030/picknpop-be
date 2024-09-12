@@ -29,6 +29,7 @@ def get_posts(db: Session, skip: int = 0, limit: int = 10):
     return (
         db.query(Post)
         .options(joinedload(Post.author))
+        .filter(Post.is_deleted == False)
         .order_by(Post.id.desc())
         .offset(skip)
         .limit(limit)
@@ -39,6 +40,7 @@ def get_posts(db: Session, skip: int = 0, limit: int = 10):
 def get_post(db: Session, post_id: int):
     post = (
         db.query(Post)
+        .filter(Post.is_deleted == False)
         .options(joinedload(Post.teams))
         .filter(Post.id == post_id)
         .first()
@@ -106,10 +108,11 @@ def delete_post(db: Session, post_id: int):
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
-
-    db.delete(post)
+    post.is_deleted = True
     db.commit()
-    return {"message": "Post deleted successfully"}
+    db.refresh(post)
+
+    return {"message": "Post marked as deleted successfully"}
 
 
 def create_comment(

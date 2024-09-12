@@ -25,6 +25,10 @@ class PostUpdate(BaseModel):
         from_attributes = True
 
 
+class PostDeleted(PostBase):
+    is_deleted: bool
+
+
 class Post(PostBase):
     id: int
     author: User
