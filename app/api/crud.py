@@ -25,16 +25,54 @@ def create_post(db: Session, post: post_schema.PostCreate, user_id: int):
     return db_post
 
 
-def get_posts(db: Session, skip: int = 0, limit: int = 10):
-    return (
-        db.query(Post)
+def get_posts(db: Session, skip: int = 0):
+    comment_count_subquery = (
+        db.query(Comment.post_id, func.count(Comment.id).label("comment_count"))
+        .group_by(Comment.post_id)
+        .subquery()
+    )
+
+    emotion_count_subquery = (
+        db.query(Emotion.post_id, func.count(Emotion.id).label("emotion_count"))
+        .group_by(Emotion.post_id)
+        .subquery()
+    )
+
+    posts = (
+        db.query(
+            Post,
+            func.coalesce(comment_count_subquery.c.comment_count, 0).label(
+                "comment_count"
+            ),
+            func.coalesce(emotion_count_subquery.c.emotion_count, 0).label(
+                "emotion_count"
+            ),
+        )
+        .outerjoin(comment_count_subquery, Post.id == comment_count_subquery.c.post_id)
+        .outerjoin(emotion_count_subquery, Post.id == emotion_count_subquery.c.post_id)
         .options(joinedload(Post.author))
         .filter(Post.is_deleted == False)
         .order_by(Post.id.desc())
         .offset(skip)
-        .limit(limit)
         .all()
     )
+    if not posts:
+        raise HTTPException(status_code=404, detail="Posts not found")
+
+    return [
+        post_schema.PostMain(
+            id=post.id,
+            title=post.title,
+            content=post.content,
+            author=post.author,
+            created_at=post.created_at,
+            updated_at=post.updated_at,
+            views=post.views,
+            comment_count=comment_count,
+            emotion_count=emotion_count,
+        )
+        for post, comment_count, emotion_count in posts
+    ]
 
 
 def get_post(db: Session, post_id: int):
@@ -142,14 +180,53 @@ def get_teams(db: Session, skip: int = 0, limit: int = 20):
 
 
 def get_posts_by_team(db: Session, team_id: int):
-    return (
-        db.query(Post)
+    comment_count_subquery = (
+        db.query(Comment.post_id, func.count(Comment.id).label("comment_count"))
+        .group_by(Comment.post_id)
+        .subquery()
+    )
+
+    emotion_count_subquery = (
+        db.query(Emotion.post_id, func.count(Emotion.id).label("emotion_count"))
+        .group_by(Emotion.post_id)
+        .subquery()
+    )
+
+    posts = (
+        db.query(
+            Post,
+            func.coalesce(comment_count_subquery.c.comment_count, 0).label(
+                "comment_count"
+            ),
+            func.coalesce(emotion_count_subquery.c.emotion_count, 0).label(
+                "emotion_count"
+            ),
+        )
+        .outerjoin(comment_count_subquery, Post.id == comment_count_subquery.c.post_id)
+        .outerjoin(emotion_count_subquery, Post.id == emotion_count_subquery.c.post_id)
         .options(joinedload(Post.author), joinedload(Post.teams))
         .join(Post.teams)
         .filter(Team.id == team_id)
         .order_by(Post.id.desc())
         .all()
     )
+    if not posts:
+        raise HTTPException(status_code=404, detail="Posts not found")
+
+    return [
+        post_schema.Post(
+            id=post.id,
+            title=post.title,
+            content=post.content,
+            author=post.author,
+            created_at=post.created_at,
+            updated_at=post.updated_at,
+            views=post.views,
+            comment_count=comment_count,
+            emotion_count=emotion_count,
+        )
+        for post, comment_count, emotion_count in posts
+    ]
 
 
 def get_emotion_types(db: Session, skip: int = 0):

@@ -22,9 +22,9 @@ def create_post(
     return crud.create_post(db=db, post=post, user_id=user_id)
 
 
-@router.get("/", response_model=List[post_schema.Post])
-def read_posts(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    posts = crud.get_posts(db, skip=skip, limit=limit)
+@router.get("/", response_model=List[post_schema.PostMain])
+def read_posts(skip: int = 0, db: Session = Depends(get_db)):
+    posts = crud.get_posts(db, skip=skip)
     return posts
 
 

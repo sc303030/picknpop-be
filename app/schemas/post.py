@@ -40,6 +40,14 @@ class Post(PostBase):
         from_attributes = True
 
 
+class PostMain(Post):
+    comment_count: int
+    emotion_count: int
+
+    class Config:
+        from_attributes = True
+
+
 class PostResponse(Post):
     teams: List[TeamResponse]
 
