@@ -19,7 +19,7 @@ def read_teams(skip: int = 0, limit: int = 20, db: Session = Depends(get_db)):
     return teams
 
 
-@router.get("/{team_id}/posts", response_model=List[post_schema.Post])
+@router.get("/{team_id}/posts", response_model=List[post_schema.PostMain])
 def read_posts_by_team(team_id: int, db: Session = Depends(get_db)):
     posts = crud.get_posts_by_team(db, team_id=team_id)
     if posts is None:

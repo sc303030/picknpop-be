@@ -214,7 +214,7 @@ def get_posts_by_team(db: Session, team_id: int):
         raise HTTPException(status_code=404, detail="Posts not found")
 
     return [
-        post_schema.Post(
+        post_schema.PostMain(
             id=post.id,
             title=post.title,
             content=post.content,
