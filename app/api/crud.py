@@ -56,8 +56,6 @@ def get_posts(db: Session, skip: int = 0):
         .offset(skip)
         .all()
     )
-    if not posts:
-        raise HTTPException(status_code=404, detail="Posts not found")
 
     return [
         post_schema.PostMain(
@@ -210,8 +208,6 @@ def get_posts_by_team(db: Session, team_id: int):
         .order_by(Post.id.desc())
         .all()
     )
-    if not posts:
-        raise HTTPException(status_code=404, detail="Posts not found")
 
     return [
         post_schema.PostMain(

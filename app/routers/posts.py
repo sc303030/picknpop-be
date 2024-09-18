@@ -13,7 +13,7 @@ from app.api import crud
 router = APIRouter()
 
 
-@router.post("/", response_model=post_schema.Post)
+@router.post("/", response_model=post_schema.PostCreateResponse)
 def create_post(
     post: post_schema.PostCreate,
     db: Session = Depends(get_db),

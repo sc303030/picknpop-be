@@ -40,6 +40,14 @@ class Post(PostBase):
         from_attributes = True
 
 
+class PostCreateResponse(Post):
+    comment_count: int = 0
+    emotion_count: int = 0
+
+    class Config:
+        from_attributes = True
+
+
 class PostMain(Post):
     comment_count: int
     emotion_count: int
