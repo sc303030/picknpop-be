@@ -42,11 +42,18 @@ def read_post(post_id: int, db: Session = Depends(get_db)):
 
 @router.put("/{post_id}")
 def update_post_route(
-    post_id: int, post_update: post_schema.PostUpdate, db: Session = Depends(get_db)
+    post_id: int,
+    post_update: post_schema.PostUpdate,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_current_user),
 ):
-    return update_post(db=db, post_id=post_id, post_update=post_update)
+    return update_post(db=db, post_id=post_id, post_update=post_update, user_id=user_id)
 
 
 @router.patch("/{post_id}")
-def delete_post_route(post_id: int, db: Session = Depends(get_db)):
-    return delete_post(db=db, post_id=post_id)
+def delete_post_route(
+    post_id: int,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_current_user),
+):
+    return delete_post(db=db, post_id=post_id, user_id=user_id)

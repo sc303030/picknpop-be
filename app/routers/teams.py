@@ -14,8 +14,8 @@ router = APIRouter()
 
 
 @router.get("/", response_model=List[team_schema.Team])
-def read_teams(skip: int = 0, limit: int = 20, db: Session = Depends(get_db)):
-    teams = crud.get_teams(db, skip=skip, limit=limit)
+def read_teams(skip: int = 0, db: Session = Depends(get_db)):
+    teams = crud.get_teams(db, skip=skip)
     return teams
 
 

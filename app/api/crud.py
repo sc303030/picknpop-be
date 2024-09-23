@@ -51,7 +51,6 @@ def get_posts(db: Session, skip: int = 0):
         .outerjoin(comment_count_subquery, Post.id == comment_count_subquery.c.post_id)
         .outerjoin(emotion_count_subquery, Post.id == emotion_count_subquery.c.post_id)
         .options(joinedload(Post.author))
-        .filter(Post.is_deleted == False)
         .order_by(Post.id.desc())
         .offset(skip)
         .all()
@@ -76,7 +75,6 @@ def get_posts(db: Session, skip: int = 0):
 def get_post(db: Session, post_id: int):
     post = (
         db.query(Post)
-        .filter(Post.is_deleted == False)
         .options(joinedload(Post.teams))
         .filter(Post.id == post_id)
         .first()
@@ -118,10 +116,17 @@ def get_popular_posts(db: Session):
 
 
 # 게시글 수정
-def update_post(db: Session, post_id: int, post_update: post_schema.PostUpdate):
+def update_post(
+    db: Session, post_id: int, post_update: post_schema.PostUpdate, user_id: int
+):
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
+
+    if post.author_id != user_id:
+        raise HTTPException(
+            status_code=403, detail="You are not authorized to delete this comment"
+        )
 
     for key, value in post_update.dict(exclude_unset=True).items():
         setattr(post, key, value)
@@ -140,14 +145,17 @@ def update_post(db: Session, post_id: int, post_update: post_schema.PostUpdate):
 
 
 # 게시글 삭제
-def delete_post(db: Session, post_id: int):
+def delete_post(db: Session, post_id: int, user_id: int):
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
-    post.is_deleted = True
-    db.commit()
-    db.refresh(post)
 
+    if post.author_id != user_id:
+        raise HTTPException(
+            status_code=403, detail="You are not authorized to delete this comment"
+        )
+    db.delete(post)
+    db.commit()
     return {"message": "Post marked as deleted successfully"}
 
 
@@ -173,8 +181,25 @@ def get_comments(db: Session, post_id: int, skip: int = 0, limit: int = 10):
     )
 
 
-def get_teams(db: Session, skip: int = 0, limit: int = 20):
-    return db.query(Team).offset(skip).limit(limit).all()
+def delete_comment(db: Session, comment_id: int, current_user_id: int):
+    comment = db.query(Comment).filter(Comment.id == comment_id).first()
+
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+
+    if comment.author_id != current_user_id:
+        raise HTTPException(
+            status_code=403, detail="You are not authorized to delete this comment"
+        )
+
+    db.delete(comment)
+    db.commit()
+
+    return {"message": "Comment deleted successfully"}
+
+
+def get_teams(db: Session, skip: int = 0):
+    return db.query(Team).offset(skip).all()
 
 
 def get_posts_by_team(db: Session, team_id: int):

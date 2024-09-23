@@ -6,7 +6,7 @@ from app.db import models
 from app.db.database import get_db
 from app.dependencies import get_current_user
 from app.schemas import comment as comment_schema
-from app.api.crud import create_comment, get_comments
+from app.api.crud import create_comment, get_comments, delete_comment
 
 router = APIRouter()
 
@@ -30,3 +30,13 @@ def read_comments_for_post(
 ):
     comments = get_comments(db, post_id=post_id, skip=skip, limit=limit)
     return comments
+
+
+@router.delete("/{comment_id}", response_model=dict)
+def delete_comment_route(
+    comment_id: int,
+    db: Session = Depends(get_db),
+    current_user: int = Depends(get_current_user),
+):
+
+    return delete_comment(db=db, comment_id=comment_id, current_user_id=current_user)

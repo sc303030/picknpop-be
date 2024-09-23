@@ -92,7 +92,6 @@ class Post(Base, TimestampMixin):
     title = Column(String, index=True)
     content = Column(Text)
     views = Column(Integer, default=0)
-    is_deleted = Column(Boolean, default=False, server_default=expression.false())
     author_id = Column(Integer, ForeignKey("accounts_user.id"))
 
     author = relationship("User", back_populates="posts")
