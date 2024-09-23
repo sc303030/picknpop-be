@@ -66,7 +66,7 @@ class Emotion(Base, TimestampMixin):
 
 
 post_team_association = Table(
-    "posts_post_team",
+    "posts_post_teams",
     Base.metadata,
     Column("post_id", ForeignKey("posts_post.id"), primary_key=True),
     Column("team_id", ForeignKey("posts_team.id"), primary_key=True),
