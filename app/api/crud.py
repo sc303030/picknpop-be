@@ -94,16 +94,20 @@ def increment_post_views(db: Session, post: Post):
 
 
 def get_popular_posts(db: Session):
-    one_minute_ago = datetime.utcnow() - timedelta(minutes=60)
+    one_minute_ago = datetime.utcnow() - timedelta(minutes=1)
     popular_posts = (
         db.query(Post, func.count(PostViewLog.id).label("recent_views"))
-        .join(PostViewLog)
-        .filter(PostViewLog.viewed_at >= one_minute_ago)
+        .outerjoin(
+            PostViewLog,
+            (Post.id == PostViewLog.post_id)
+            & (PostViewLog.viewed_at >= one_minute_ago),
+        )
         .group_by(Post.id)
         .order_by(func.count(PostViewLog.id).desc())
         .limit(5)
         .all()
     )
+
     return [
         post_schema.PostViewLog(
             post_id=post.id,
