@@ -25,7 +25,9 @@ def create_post(db: Session, post: post_schema.PostCreate, user_id: int):
     return db_post
 
 
-def get_posts(db: Session, skip: int = 0):
+def get_posts(db: Session, skip: int = 0, limit: int = 10):
+    total_posts = db.query(Post).count()
+
     comment_count_subquery = (
         db.query(Comment.post_id, func.count(Comment.id).label("comment_count"))
         .group_by(Comment.post_id)
@@ -38,6 +40,7 @@ def get_posts(db: Session, skip: int = 0):
         .subquery()
     )
 
+    # 실제 게시물 쿼리
     posts = (
         db.query(
             Post,
@@ -53,23 +56,27 @@ def get_posts(db: Session, skip: int = 0):
         .options(joinedload(Post.author))
         .order_by(Post.id.desc())
         .offset(skip)
+        .limit(limit)
         .all()
     )
 
-    return [
-        post_schema.PostMain(
-            id=post.id,
-            title=post.title,
-            content=post.content,
-            author=post.author,
-            created_at=post.created_at,
-            updated_at=post.updated_at,
-            views=post.views,
-            comment_count=comment_count,
-            emotion_count=emotion_count,
-        )
-        for post, comment_count, emotion_count in posts
-    ]
+    return {
+        "total_count": total_posts,
+        "posts": [
+            post_schema.PostMain(
+                id=post.id,
+                title=post.title,
+                content=post.content,
+                author=post.author,
+                created_at=post.created_at,
+                updated_at=post.updated_at,
+                views=post.views,
+                comment_count=comment_count,
+                emotion_count=emotion_count,
+            )
+            for post, comment_count, emotion_count in posts
+        ],
+    }
 
 
 def get_post(db: Session, post_id: int):
@@ -206,7 +213,8 @@ def get_teams(db: Session, skip: int = 0):
     return db.query(Team).offset(skip).all()
 
 
-def get_posts_by_team(db: Session, team_id: int):
+def get_posts_by_team(db: Session, team_id: int, skip: int = 0, limit: int = 10):
+    total_posts = db.query(Post).join(Post.teams).filter(Team.id == team_id).count()
     comment_count_subquery = (
         db.query(Comment.post_id, func.count(Comment.id).label("comment_count"))
         .group_by(Comment.post_id)
@@ -235,23 +243,28 @@ def get_posts_by_team(db: Session, team_id: int):
         .join(Post.teams)
         .filter(Team.id == team_id)
         .order_by(Post.id.desc())
+        .offset(skip)
+        .limit(limit)
         .all()
     )
 
-    return [
-        post_schema.PostMain(
-            id=post.id,
-            title=post.title,
-            content=post.content,
-            author=post.author,
-            created_at=post.created_at,
-            updated_at=post.updated_at,
-            views=post.views,
-            comment_count=comment_count,
-            emotion_count=emotion_count,
-        )
-        for post, comment_count, emotion_count in posts
-    ]
+    return {
+        "total_count": total_posts,
+        "posts": [
+            post_schema.PostMain(
+                id=post.id,
+                title=post.title,
+                content=post.content,
+                author=post.author,
+                created_at=post.created_at,
+                updated_at=post.updated_at,
+                views=post.views,
+                comment_count=comment_count,
+                emotion_count=emotion_count,
+            )
+            for post, comment_count, emotion_count in posts
+        ],
+    }
 
 
 def get_emotion_types(db: Session, skip: int = 0):

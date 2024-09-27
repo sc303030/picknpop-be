@@ -52,6 +52,14 @@ class PostMain(Post):
         from_attributes = True
 
 
+class PostMainResponse(BaseModel):
+    posts: List[PostMain]
+    total_count: int
+
+    class Config:
+        from_attributes = True
+
+
 class PostResponse(Post):
     teams: List[TeamResponse]
 
