@@ -19,7 +19,7 @@ def read_teams(skip: int = 0, db: Session = Depends(get_db)):
     return teams
 
 
-@router.get("/{team_id}/posts", response_model=post_schema.PostMainResponse)
+@router.get("/{team_id}/posts/", response_model=post_schema.PostMainResponse)
 def read_posts_by_team(
     team_id: int, skip: int = 0, limit: int = 10, db: Session = Depends(get_db)
 ):
