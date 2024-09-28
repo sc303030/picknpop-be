@@ -43,10 +43,10 @@ async def check_origin_or_referer(request: Request, call_next):
 
 
 # API 라우터 설정
-apps.include_router(posts.router, prefix="/api/posts", tags=["posts"])
-apps.include_router(comments.router, prefix="/api/comments", tags=["comments"])
-apps.include_router(teams.router, prefix="/api/teams", tags=["teams"])
-apps.include_router(emotions.router, prefix="/api/emotions", tags=["emotions"])
+apps.include_router(posts.router, prefix="/posts", tags=["posts"])
+apps.include_router(comments.router, prefix="/comments", tags=["comments"])
+apps.include_router(teams.router, prefix="/teams", tags=["teams"])
+apps.include_router(emotions.router, prefix="/emotions", tags=["emotions"])
 
 # 애플리케이션 실행
 if __name__ == "__main__":
